@@ -2,7 +2,9 @@ import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sovereign_ledger/core/constants/hive_boxes.dart';
 import 'package:sovereign_ledger/core/enums/category_type.dart';
+import 'package:sovereign_ledger/core/enums/transaction_type.dart';
 import 'package:sovereign_ledger/data/models/category_model.dart';
+import 'package:sovereign_ledger/data/models/transaction_model.dart';
 
 /// Centralized Hive setup for the app.
 /// Keeps adapter registration and box opening in one place.
@@ -27,10 +29,19 @@ class HiveService {
     if (!Hive.isAdapterRegistered(1)) {
       Hive.registerAdapter(CategoryTypeAdapter());
     }
+
+    if (!Hive.isAdapterRegistered(2)) {
+      Hive.registerAdapter(TransactionTypeAdapter());
+    }
+
+    if (!Hive.isAdapterRegistered(3)) {
+      Hive.registerAdapter(TransactionModelAdapter());
+    }
   }
 
   /// Opens all app boxes used during startup.
   static Future<void> _openBoxes() async {
     await Hive.openBox<CategoryModel>(HiveBoxes.categories);
+    await Hive.openBox<TransactionModel>(HiveBoxes.transactions);
   }
 }
