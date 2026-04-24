@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:sovereign_ledger/core/constants/app_colors.dart';
 import 'package:sovereign_ledger/features/budgets/screens/budgets_screen.dart';
 import 'package:sovereign_ledger/features/insights/screens/insights_screen.dart';
 import 'package:sovereign_ledger/features/overview/screens/overview_screen.dart';
 import 'package:sovereign_ledger/features/settings/screens/settings_screen.dart';
+import 'package:sovereign_ledger/features/transactions/screens/add_transaction_screen.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -13,6 +15,7 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   int _currentIndex = 0;
+  bool _isFabOpen = false;
 
   final List<Widget> _screens = const [
     OverviewScreen(),
@@ -24,13 +27,24 @@ class _AppShellState extends State<AppShell> {
   void _onTabSelected(int index) {
     setState(() {
       _currentIndex = index;
+      _isFabOpen = false;
     });
   }
 
-  void _openAddTransaction() {
-    // The actual Add Transaction screen will be connected in the next step.
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Add Transaction coming next')),
+  void _toggleFab() {
+    setState(() {
+      _isFabOpen = !_isFabOpen;
+    });
+  }
+
+  Future<void> _openAddTransaction(int initialTab) async {
+    setState(() => _isFabOpen = false);
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AddTransactionScreen(initialTab: initialTab),
+      ),
     );
   }
 
@@ -38,9 +52,12 @@ class _AppShellState extends State<AppShell> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(child: _screens[_currentIndex]),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _openAddTransaction,
-        child: const Icon(Icons.add),
+      floatingActionButton: _QuickActionFab(
+        isOpen: _isFabOpen,
+        onToggle: _toggleFab,
+        onManual: () => _openAddTransaction(0),
+        onCapture: () => _openAddTransaction(1),
+        onUpload: () => _openAddTransaction(2),
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
@@ -67,6 +84,108 @@ class _AppShellState extends State<AppShell> {
             label: 'Settings',
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _QuickActionFab extends StatelessWidget {
+  final bool isOpen;
+  final VoidCallback onToggle;
+  final VoidCallback onManual;
+  final VoidCallback onCapture;
+  final VoidCallback onUpload;
+
+  const _QuickActionFab({
+    required this.isOpen,
+    required this.onToggle,
+    required this.onManual,
+    required this.onCapture,
+    required this.onUpload,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (!isOpen) {
+      return FloatingActionButton(
+        backgroundColor: AppColors.primary,
+        onPressed: onToggle,
+        child: const Icon(Icons.add),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFF94A3B8),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _MiniActionButton(
+            icon: Icons.edit_note_outlined,
+            tooltip: 'Manual',
+            onTap: onManual,
+          ),
+          const SizedBox(width: 8),
+          _MiniActionButton(
+            icon: Icons.document_scanner_outlined,
+            tooltip: 'Capture',
+            onTap: onCapture,
+          ),
+          const SizedBox(width: 8),
+          _MiniActionButton(
+            icon: Icons.upload_file_outlined,
+            tooltip: 'Upload',
+            onTap: onUpload,
+          ),
+          const SizedBox(width: 8),
+          _MiniActionButton(
+            icon: Icons.close,
+            tooltip: 'Close',
+            isPrimary: true,
+            onTap: onToggle,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MiniActionButton extends StatelessWidget {
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onTap;
+  final bool isPrimary;
+
+  const _MiniActionButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+    this.isPrimary = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Container(
+          width: 38,
+          height: 38,
+          decoration: BoxDecoration(
+            color: isPrimary ? AppColors.primary : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(
+            icon,
+            size: 19,
+            color: isPrimary ? Colors.white : AppColors.primary,
+          ),
+        ),
       ),
     );
   }
