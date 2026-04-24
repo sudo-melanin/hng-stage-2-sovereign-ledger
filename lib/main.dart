@@ -6,6 +6,8 @@ import 'package:sovereign_ledger/core/theme/app_theme.dart';
 import 'package:sovereign_ledger/data/repositories/category_repository.dart';
 import 'package:sovereign_ledger/data/repositories/transaction_repository.dart';
 import 'package:sovereign_ledger/providers/transaction_provider.dart';
+import 'package:sovereign_ledger/data/repositories/budget_repository.dart';
+import 'package:sovereign_ledger/providers/budget_provider.dart';
 
 Future<void> main() async {
   await HiveService.init();
@@ -24,6 +26,9 @@ class SovereignLedgerApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) =>
               TransactionProvider(TransactionRepository())..loadTransactions(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => BudgetProvider(BudgetRepository())..loadBudgets(),
         ),
       ],
       child: MaterialApp(

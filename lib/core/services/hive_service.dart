@@ -5,6 +5,8 @@ import 'package:sovereign_ledger/core/enums/category_type.dart';
 import 'package:sovereign_ledger/core/enums/transaction_type.dart';
 import 'package:sovereign_ledger/data/models/category_model.dart';
 import 'package:sovereign_ledger/data/models/transaction_model.dart';
+import 'package:sovereign_ledger/core/enums/budget_period_type.dart';
+import 'package:sovereign_ledger/data/models/budget_model.dart';
 
 /// Centralized Hive setup for the app.
 /// Keeps adapter registration and box opening in one place.
@@ -37,11 +39,20 @@ class HiveService {
     if (!Hive.isAdapterRegistered(3)) {
       Hive.registerAdapter(TransactionModelAdapter());
     }
+
+    if (!Hive.isAdapterRegistered(4)) {
+      Hive.registerAdapter(BudgetPeriodTypeAdapter());
+    }
+
+    if (!Hive.isAdapterRegistered(5)) {
+      Hive.registerAdapter(BudgetModelAdapter());
+    }
   }
 
   /// Opens all app boxes used during startup.
   static Future<void> _openBoxes() async {
     await Hive.openBox<CategoryModel>(HiveBoxes.categories);
     await Hive.openBox<TransactionModel>(HiveBoxes.transactions);
+    await Hive.openBox<BudgetModel>(HiveBoxes.budgets);
   }
 }
