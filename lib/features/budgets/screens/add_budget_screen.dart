@@ -8,6 +8,8 @@ import 'package:sovereign_ledger/data/models/category_model.dart';
 import 'package:sovereign_ledger/data/repositories/category_repository.dart';
 import 'package:sovereign_ledger/providers/budget_provider.dart';
 
+import '../../../data/repositories/budget_repository.dart';
+
 class AddBudgetScreen extends StatefulWidget {
   const AddBudgetScreen({super.key});
 
@@ -18,6 +20,7 @@ class AddBudgetScreen extends StatefulWidget {
 class _AddBudgetScreenState extends State<AddBudgetScreen> {
   final _formKey = GlobalKey<FormState>();
   final _amountController = TextEditingController();
+  DateTime? _customEndDate;
 
   late final List<CategoryModel> _expenseCategories;
 
@@ -41,15 +44,21 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
   }
 
   DateTime get _endDate {
-    switch (_periodType) {
-      case BudgetPeriodType.weekly:
-        return _startDate.add(const Duration(days: 6));
-      case BudgetPeriodType.monthly:
-        return DateTime(_startDate.year, _startDate.month + 1, 0);
-      case BudgetPeriodType.custom:
-        return _startDate.add(const Duration(days: 30));
-    }
+  switch (_periodType) {
+    case BudgetPeriodType.weekly:
+      return _startDate.add(const Duration(days: 6));
+
+    case BudgetPeriodType.monthly:
+      return DateTime(
+        _startDate.year,
+        _startDate.month + 1,
+        _startDate.day,
+      ).subtract(const Duration(days: 1));
+
+    case BudgetPeriodType.custom:
+      return _customEndDate ?? _startDate;
   }
+}
 
   Future<void> _pickStartDate() async {
     final pickedDate = await showDatePicker(
@@ -66,6 +75,21 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
     });
   }
 
+  Future<void> _pickEndDate() async {
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: _customEndDate ?? _startDate,
+      firstDate: _startDate,
+      lastDate: DateTime(2100),
+    );
+
+    if (pickedDate == null) return;
+
+    setState(() {
+      _customEndDate = pickedDate;
+    });
+  }
+
   Future<void> _saveBudget() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -78,13 +102,32 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
       return;
     }
 
+   final repository = BudgetRepository();
+
+    final hasConflict = repository.hasOverlappingBudget(
+      categoryId: _selectedCategory!.id,
+      startDate: _startDate,
+      endDate: _endDate,
+    );
+
+    if (hasConflict) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'A budget already exists for this category in the selected period.',
+          ),
+        ),
+      );
+      return;
+    }
+
     await context.read<BudgetProvider>().addBudget(
-          categoryId: _selectedCategory!.id,
-          amountLimit: amount,
-          periodType: _periodType,
-          startDate: _startDate,
-          endDate: _endDate,
-        );
+      categoryId: _selectedCategory!.id,
+      amountLimit: amount,
+      periodType: _periodType,
+      startDate: _startDate,
+      endDate: _endDate,
+    );
 
     if (!mounted) return;
 
@@ -174,7 +217,13 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
                       ],
                       selected: {_periodType},
                       onSelectionChanged: (value) {
-                        setState(() => _periodType = value.first);
+                        setState(() {
+                          _periodType = value.first;
+
+                          if (_periodType != BudgetPeriodType.custom) {
+                            _customEndDate = null;
+                          }
+                        });
                       },
                     ),
                     const SizedBox(height: 16),
@@ -193,13 +242,28 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    Text(
-                      'Ends: ${_endDate.day}/${_endDate.month}/${_endDate.year}',
-                      style: const TextStyle(
-                        color: AppColors.mutedText,
-                        fontWeight: FontWeight.w600,
+                    if (_periodType == BudgetPeriodType.custom)
+                      InkWell(
+                        borderRadius: BorderRadius.circular(14),
+                        onTap: _pickEndDate,
+                        child: InputDecorator(
+                          decoration: const InputDecoration(
+                            prefixIcon: Icon(Icons.calendar_today_outlined),
+                          ),
+                          child: Text(
+                            '${_endDate.day}/${_endDate.month}/${_endDate.year}',
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                      )
+                    else
+                      Text(
+                        'Ends: ${_endDate.day}/${_endDate.month}/${_endDate.year}',
+                        style: const TextStyle(
+                          color: AppColors.mutedText,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
                   ],
                 ),
               ),

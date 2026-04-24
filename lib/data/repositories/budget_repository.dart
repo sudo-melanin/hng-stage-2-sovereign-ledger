@@ -69,4 +69,20 @@ class BudgetRepository {
   Future<void> clearBudgets() async {
     await _budgetBox.clear();
   }
+
+  bool hasOverlappingBudget({
+  required String categoryId,
+  required DateTime startDate,
+  required DateTime endDate,
+  }) {
+    return _budgetBox.values.any((budget) {
+      final sameCategory = budget.categoryId == categoryId;
+
+      final overlaps =
+          startDate.isBefore(budget.endDate) &&
+          endDate.isAfter(budget.startDate);
+
+      return sameCategory && overlaps;
+    });
+  }
 }

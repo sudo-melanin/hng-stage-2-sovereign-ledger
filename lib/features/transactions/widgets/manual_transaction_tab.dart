@@ -7,6 +7,8 @@ import 'package:sovereign_ledger/core/utils/input_formatters.dart';
 import 'package:sovereign_ledger/data/models/category_model.dart';
 import 'package:sovereign_ledger/data/repositories/category_repository.dart';
 import 'package:sovereign_ledger/providers/transaction_provider.dart';
+import 'package:sovereign_ledger/providers/insights_provider.dart';
+import 'package:sovereign_ledger/providers/budget_provider.dart';
 
 class ManualTransactionTab extends StatefulWidget {
   const ManualTransactionTab({super.key});
@@ -101,6 +103,9 @@ class _ManualTransactionTabState extends State<ManualTransactionTab> {
         );
 
     if (!mounted) return;
+
+    context.read<InsightsProvider>().loadInsights();
+    context.read<BudgetProvider>().loadBudgets();
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
