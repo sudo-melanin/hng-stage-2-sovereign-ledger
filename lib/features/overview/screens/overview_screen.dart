@@ -3,7 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:sovereign_ledger/core/constants/app_colors.dart';
 import 'package:sovereign_ledger/core/enums/transaction_type.dart';
 import 'package:sovereign_ledger/core/utils/currency_formatter.dart';
+import 'package:sovereign_ledger/core/utils/security_guard.dart';
 import 'package:sovereign_ledger/data/models/transaction_model.dart';
+import 'package:sovereign_ledger/providers/security_provider.dart';
 import 'package:sovereign_ledger/providers/transaction_provider.dart';
 
 class OverviewScreen extends StatelessWidget {
@@ -11,20 +13,24 @@ class OverviewScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SingleChildScrollView(
-      padding: EdgeInsets.fromLTRB(20, 18, 20, 110),
+    final isUnlocked = context.select<SecurityProvider, bool>(
+      (provider) => provider.isUnlocked,
+    );
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 110),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _Header(),
-          SizedBox(height: 18),
-          _BalanceCard(),
-          SizedBox(height: 18),
-          _SummaryRow(),
-          SizedBox(height: 22),
-          _SectionTitle(title: 'Recent Ledger', actionText: 'View All'),
-          SizedBox(height: 12),
-          _RecentLedgerList(),
+          const _Header(),
+          const SizedBox(height: 18),
+          _BalanceCard(isUnlocked: isUnlocked),
+          const SizedBox(height: 18),
+          _SummaryRow(isUnlocked: isUnlocked),
+          const SizedBox(height: 22),
+          const _SectionTitle(title: 'Recent Ledger', actionText: 'View All'),
+          const SizedBox(height: 12),
+          if (isUnlocked) const _RecentLedgerList() else const _LockedLedgerState(),
         ],
       ),
     );
@@ -68,7 +74,11 @@ class _Header extends StatelessWidget {
 }
 
 class _BalanceCard extends StatelessWidget {
-  const _BalanceCard();
+  final bool isUnlocked;
+
+  const _BalanceCard({
+    required this.isUnlocked,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -113,37 +123,57 @@ class _BalanceCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            CurrencyFormatter.format(balance),
+            isUnlocked ? CurrencyFormatter.format(balance) : '••••••••',
             style: TextStyle(
-              color: isNegative ? const Color(0xFFFFD1D1) : Colors.white,
+              color: isUnlocked && isNegative
+                  ? const Color(0xFFFFD1D1)
+                  : Colors.white,
               fontSize: 30,
               fontWeight: FontWeight.w900,
             ),
           ),
           const SizedBox(height: 5),
           Text(
-            isNegative
-                ? 'Balance is currently below zero'
-                : 'Market valuation as of today',
+            !isUnlocked
+                ? 'Verify liveness to view dashboard data'
+                : isNegative
+                    ? 'Balance is currently below zero'
+                    : 'Market valuation as of today',
             style: const TextStyle(
               color: Colors.white70,
               fontSize: 12,
             ),
           ),
           const SizedBox(height: 18),
-          Row(
-            children: [
-              _BalanceActionButton(
-                label: 'DEPOSIT',
-                onTap: () {},
+          if (!isUnlocked)
+            SizedBox(
+              width: double.infinity,
+              height: 42,
+              child: FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: AppColors.primary,
+                ),
+                onPressed: () async {
+                  await ensureSecurityUnlocked(context);
+                },
+                child: const Text('Unlock Dashboard'),
               ),
-              const SizedBox(width: 10),
-              _BalanceActionButton(
-                label: 'WITHDRAW',
-                onTap: () {},
-              ),
-            ],
-          ),
+            )
+          else
+            Row(
+              children: [
+                _BalanceActionButton(
+                  label: 'DEPOSIT',
+                  onTap: () {},
+                ),
+                const SizedBox(width: 10),
+                _BalanceActionButton(
+                  label: 'WITHDRAW',
+                  onTap: () {},
+                ),
+              ],
+            ),
         ],
       ),
     );
@@ -187,7 +217,11 @@ class _BalanceActionButton extends StatelessWidget {
 }
 
 class _SummaryRow extends StatelessWidget {
-  const _SummaryRow();
+  final bool isUnlocked;
+
+  const _SummaryRow({
+    required this.isUnlocked,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -208,7 +242,7 @@ class _SummaryRow extends StatelessWidget {
         Expanded(
           child: _SummaryCard(
             title: 'Income',
-            value: CurrencyFormatter.format(totalIncome),
+            value: isUnlocked ? CurrencyFormatter.format(totalIncome) : '••••',
             icon: Icons.arrow_downward_rounded,
             color: AppColors.income,
           ),
@@ -217,7 +251,7 @@ class _SummaryRow extends StatelessWidget {
         Expanded(
           child: _SummaryCard(
             title: 'Expense',
-            value: CurrencyFormatter.format(totalExpense),
+            value: isUnlocked ? CurrencyFormatter.format(totalExpense) : '••••',
             icon: Icons.arrow_upward_rounded,
             color: AppColors.expense,
           ),
@@ -226,9 +260,9 @@ class _SummaryRow extends StatelessWidget {
         Expanded(
           child: _SummaryCard(
             title: 'Net',
-            value: CurrencyFormatter.format(balance),
+            value: isUnlocked ? CurrencyFormatter.format(balance) : '••••',
             icon: Icons.account_balance_wallet_outlined,
-            color: balance < 0 ? AppColors.expense : AppColors.primary,
+            color: isUnlocked && balance < 0 ? AppColors.expense : AppColors.primary,
           ),
         ),
       ],
@@ -330,6 +364,55 @@ class _SectionTitle extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _LockedLedgerState extends StatelessWidget {
+  const _LockedLedgerState();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
+        children: [
+          const Icon(
+            Icons.lock_outline,
+            color: AppColors.primary,
+            size: 34,
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'Ledger is locked',
+            style: TextStyle(
+              fontWeight: FontWeight.w900,
+              color: AppColors.darkText,
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Verify liveness to view recent financial activity.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: AppColors.mutedText,
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(height: 14),
+          FilledButton(
+            onPressed: () async {
+              await ensureSecurityUnlocked(context);
+            },
+            child: const Text('Unlock'),
+          ),
+        ],
+      ),
     );
   }
 }

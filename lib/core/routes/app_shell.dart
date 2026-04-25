@@ -5,6 +5,7 @@ import 'package:sovereign_ledger/features/insights/screens/insights_screen.dart'
 import 'package:sovereign_ledger/features/overview/screens/overview_screen.dart';
 import 'package:sovereign_ledger/features/settings/screens/settings_screen.dart';
 import 'package:sovereign_ledger/features/transactions/screens/add_transaction_screen.dart';
+import 'package:sovereign_ledger/core/utils/security_guard.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -24,7 +25,12 @@ class _AppShellState extends State<AppShell> {
     SettingsScreen(),
   ];
 
-  void _onTabSelected(int index) {
+  Future<void> _onTabSelected(int index) async {
+    if (index == 2) {
+      final unlocked = await ensureSecurityUnlocked(context);
+      if (!unlocked) return;
+    }
+
     setState(() {
       _currentIndex = index;
       _isFabOpen = false;
