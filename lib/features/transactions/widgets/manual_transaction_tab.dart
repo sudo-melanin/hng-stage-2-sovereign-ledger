@@ -9,6 +9,7 @@ import 'package:sovereign_ledger/data/repositories/category_repository.dart';
 import 'package:sovereign_ledger/providers/transaction_provider.dart';
 import 'package:sovereign_ledger/providers/insights_provider.dart';
 import 'package:sovereign_ledger/providers/budget_provider.dart';
+import 'package:sovereign_ledger/core/enums/recurrence_frequency.dart';
 
 class ManualTransactionTab extends StatefulWidget {
   const ManualTransactionTab({super.key});
@@ -28,6 +29,8 @@ class _ManualTransactionTabState extends State<ManualTransactionTab> {
   CategoryModel? _selectedCategory;
   DateTime _selectedDate = DateTime.now();
   bool _isRecurring = false;
+
+  RecurrenceFrequency _recurrenceFrequency = RecurrenceFrequency.weekly;
 
   List<CategoryModel> get _categories {
     final categoryType = _selectedType == TransactionType.income
@@ -100,6 +103,7 @@ class _ManualTransactionTabState extends State<ManualTransactionTab> {
               ? null
               : _noteController.text.trim(),
           isRecurring: _isRecurring,
+          recurrenceFrequency: _isRecurring ? _recurrenceFrequency : null,
         );
 
     if (!mounted) return;
@@ -277,7 +281,7 @@ class _ManualTransactionTabState extends State<ManualTransactionTab> {
                       style: TextStyle(fontWeight: FontWeight.w700),
                     ),
                     subtitle: const Text(
-                      'Frequency setup will be added in the recurring module.',
+                      'Repeat this transaction weekly or monthly.',
                     ),
                     onChanged: (value) {
                       setState(() {
@@ -285,6 +289,27 @@ class _ManualTransactionTabState extends State<ManualTransactionTab> {
                       });
                     },
                   ),
+                  if (_isRecurring) ...[
+                    const SizedBox(height: 10),
+                    SegmentedButton<RecurrenceFrequency>(
+                      segments: const [
+                        ButtonSegment(
+                          value: RecurrenceFrequency.weekly,
+                          label: Text('Weekly'),
+                        ),
+                        ButtonSegment(
+                          value: RecurrenceFrequency.monthly,
+                          label: Text('Monthly'),
+                        ),
+                      ],
+                      selected: {_recurrenceFrequency},
+                      onSelectionChanged: (value) {
+                        setState(() {
+                          _recurrenceFrequency = value.first;
+                        });
+                      },
+                    ),
+                  ],
                 ],
               ),
             ),
