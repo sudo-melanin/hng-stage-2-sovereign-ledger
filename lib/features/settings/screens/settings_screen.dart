@@ -6,6 +6,7 @@ import 'package:sovereign_ledger/core/services/export_service.dart';
 import 'package:sovereign_ledger/core/utils/security_guard.dart';
 import 'package:sovereign_ledger/providers/settings_provider.dart';
 import 'package:sovereign_ledger/providers/transaction_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -27,8 +28,15 @@ class SettingsScreen extends StatelessWidget {
 
     if (!context.mounted) return;
 
+    await Share.shareXFiles(
+      [XFile(file.path)],
+      text: 'Sovereign Ledger transaction export',
+    );
+
+    if (!context.mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('CSV exported: ${file.path}')),
+      const SnackBar(content: Text('CSV export ready.')),
     );
   }
 

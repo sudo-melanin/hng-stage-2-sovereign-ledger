@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:csv/csv.dart';
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:sovereign_ledger/core/enums/transaction_type.dart';
 import 'package:sovereign_ledger/data/models/transaction_model.dart';
 
@@ -23,7 +22,7 @@ class ExportService {
         return [
           transaction.title,
           transaction.type == TransactionType.income ? 'Income' : 'Expense',
-          transaction.amount,
+          transaction.amount.toStringAsFixed(2),
           DateFormat('yyyy-MM-dd').format(transaction.date),
           transaction.note ?? '',
           transaction.isRecurring ? 'Yes' : 'No',
@@ -32,10 +31,12 @@ class ExportService {
     ];
 
     final csvContent = const ListToCsvConverter().convert(rows);
-    final directory = await getApplicationDocumentsDirectory();
+    final directory = Directory('/storage/emulated/0/Download');
+
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
 
     final file = File(
-      '${directory.path}/sovereign_ledger_transactions.csv',
+      '${directory.path}/sovereign_ledger_$timestamp.csv',
     );
 
     return file.writeAsString(csvContent);
