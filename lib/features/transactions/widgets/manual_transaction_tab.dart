@@ -10,6 +10,8 @@ import 'package:sovereign_ledger/providers/transaction_provider.dart';
 import 'package:sovereign_ledger/providers/insights_provider.dart';
 import 'package:sovereign_ledger/providers/budget_provider.dart';
 import 'package:sovereign_ledger/core/enums/recurrence_frequency.dart';
+import 'package:sovereign_ledger/core/constants/app_currencies.dart';
+import 'package:sovereign_ledger/providers/settings_provider.dart';
 
 class ManualTransactionTab extends StatefulWidget {
   const ManualTransactionTab({super.key});
@@ -126,6 +128,11 @@ class _ManualTransactionTabState extends State<ManualTransactionTab> {
 
   @override
   Widget build(BuildContext context) {
+
+    final currency = context.select<SettingsProvider, AppCurrency>(
+      (provider) => provider.currency,
+    );
+
     final isIncome = _selectedType == TransactionType.income;
     final activeColor = isIncome ? AppColors.income : AppColors.expense;
 
@@ -171,7 +178,7 @@ class _ManualTransactionTabState extends State<ManualTransactionTab> {
                     inputFormatters: AppInputFormatters.positiveDecimal,
                     textInputAction: TextInputAction.done,
                     decoration: InputDecoration(
-                      prefixText: '₦ ',
+                      prefixText: '${currency.symbol} ',
                       suffixIcon: Container(
                         margin: const EdgeInsets.only(right: 10),
                         padding: const EdgeInsets.symmetric(

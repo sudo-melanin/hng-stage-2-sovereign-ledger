@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:sovereign_ledger/core/constants/app_colors.dart';
 import 'package:sovereign_ledger/core/utils/currency_formatter.dart';
 import 'package:sovereign_ledger/providers/insights_provider.dart';
+import 'package:sovereign_ledger/core/constants/app_currencies.dart';
+import 'package:sovereign_ledger/providers/settings_provider.dart';
 
 class InsightsScreen extends StatelessWidget {
   const InsightsScreen({super.key});
@@ -91,6 +93,11 @@ class _InsightSummaryCards extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    final currency = context.select<SettingsProvider, AppCurrency>(
+      (provider) => provider.currency,
+    );
+
     final net = provider.totalIncome - provider.totalExpense;
     final savingsRate =
         provider.totalIncome == 0 ? 0 : (net / provider.totalIncome) * 100;
@@ -100,7 +107,7 @@ class _InsightSummaryCards extends StatelessWidget {
         Expanded(
           child: _InsightCard(
             title: 'Income',
-            value: CurrencyFormatter.format(provider.totalIncome),
+            value: CurrencyFormatter.format(provider.totalIncome, currency: currency),
             color: AppColors.income,
           ),
         ),
@@ -108,7 +115,7 @@ class _InsightSummaryCards extends StatelessWidget {
         Expanded(
           child: _InsightCard(
             title: 'Expense',
-            value: CurrencyFormatter.format(provider.totalExpense),
+            value: CurrencyFormatter.format(provider.totalExpense, currency: currency),
             color: AppColors.expense,
           ),
         ),
@@ -289,6 +296,11 @@ class _CategorySpendList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    final currency = context.select<SettingsProvider, AppCurrency>(
+      (provider) => provider.currency,
+    );
+
     return Column(
       children: provider.categorySpend.map((item) {
         return Container(
@@ -324,7 +336,7 @@ class _CategorySpendList extends StatelessWidget {
                 ),
               ),
               Text(
-                CurrencyFormatter.format(item.amount),
+                CurrencyFormatter.format(item.amount, currency: currency),
                 style: const TextStyle(
                   color: AppColors.expense,
                   fontWeight: FontWeight.w900,

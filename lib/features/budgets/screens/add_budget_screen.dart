@@ -7,6 +7,8 @@ import 'package:sovereign_ledger/core/utils/input_formatters.dart';
 import 'package:sovereign_ledger/data/models/category_model.dart';
 import 'package:sovereign_ledger/data/repositories/category_repository.dart';
 import 'package:sovereign_ledger/providers/budget_provider.dart';
+import 'package:sovereign_ledger/core/constants/app_currencies.dart';
+import 'package:sovereign_ledger/providers/settings_provider.dart';
 
 import '../../../data/repositories/budget_repository.dart';
 
@@ -140,6 +142,11 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
 
   @override
   Widget build(BuildContext context) {
+
+    final currency = context.select<SettingsProvider, AppCurrency>(
+      (provider) => provider.currency,
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('New Budget'),
@@ -179,8 +186,8 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
                         decimal: true,
                       ),
                       inputFormatters: AppInputFormatters.positiveDecimal,
-                      decoration: const InputDecoration(
-                        prefixText: '₦ ',
+                      decoration: InputDecoration(
+                        prefixText: '${currency.symbol} ',
                         hintText: '0.00',
                       ),
                       validator: (value) {
@@ -204,11 +211,11 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
                       segments: const [
                         ButtonSegment(
                           value: BudgetPeriodType.weekly,
-                          label: Text('Weekly'),
+                          label: Text('Week'),
                         ),
                         ButtonSegment(
                           value: BudgetPeriodType.monthly,
-                          label: Text('Monthly'),
+                          label: Text('Month'),
                         ),
                         ButtonSegment(
                           value: BudgetPeriodType.custom,

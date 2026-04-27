@@ -7,6 +7,8 @@ import 'package:sovereign_ledger/data/models/category_model.dart';
 import 'package:sovereign_ledger/data/repositories/category_repository.dart';
 import 'package:sovereign_ledger/features/budgets/screens/add_budget_screen.dart';
 import 'package:sovereign_ledger/providers/budget_provider.dart';
+import 'package:sovereign_ledger/core/constants/app_currencies.dart';
+import 'package:sovereign_ledger/providers/settings_provider.dart';
 
 class BudgetsScreen extends StatelessWidget {
   const BudgetsScreen({super.key});
@@ -112,6 +114,11 @@ class _BudgetSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    final currency = context.select<SettingsProvider, AppCurrency>(
+      (provider) => provider.currency,
+    );
+
     final provider = context.read<BudgetProvider>();
 
     final totalLimit = budgets.fold<double>(
@@ -155,7 +162,7 @@ class _BudgetSummaryCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            CurrencyFormatter.format(totalLimit),
+            CurrencyFormatter.format(totalLimit, currency: currency),
             style: const TextStyle(
               color: AppColors.primary,
               fontSize: 26,
@@ -164,7 +171,7 @@ class _BudgetSummaryCard extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            '${CurrencyFormatter.format(totalSpent)} used',
+            '${CurrencyFormatter.format(totalSpent, currency: currency)} used',
             style: TextStyle(
               color: isOverLimit ? AppColors.expense : AppColors.mutedText,
               fontWeight: FontWeight.w700,
@@ -195,6 +202,11 @@ class _BudgetTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    final currency = context.select<SettingsProvider, AppCurrency>(
+      (provider) => provider.currency,
+    );
+
     final provider = context.read<BudgetProvider>();
     final category = CategoryRepository()
         .getAllCategories()
@@ -251,14 +263,14 @@ class _BudgetTile extends StatelessWidget {
           Row(
             children: [
               Text(
-                CurrencyFormatter.format(spent),
+                CurrencyFormatter.format(spent, currency: currency),
                 style: const TextStyle(
                   color: AppColors.darkText,
                   fontWeight: FontWeight.w900,
                 ),
               ),
               Text(
-                ' of ${CurrencyFormatter.format(budget.amountLimit)}',
+                ' of ${CurrencyFormatter.format(budget.amountLimit, currency: currency)}',
                 style: const TextStyle(
                   color: AppColors.mutedText,
                   fontSize: 12,
@@ -268,8 +280,8 @@ class _BudgetTile extends StatelessWidget {
               const Spacer(),
               Text(
                 isOverLimit
-                    ? '${CurrencyFormatter.format(remaining.abs())} over'
-                    : '${CurrencyFormatter.format(remaining)} left',
+                    ? '${CurrencyFormatter.format(remaining.abs(), currency: currency)} over'
+                    : '${CurrencyFormatter.format(remaining, currency: currency)} left',
                 style: TextStyle(
                   color: isOverLimit ? AppColors.expense : AppColors.mutedText,
                   fontSize: 12,

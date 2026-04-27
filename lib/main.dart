@@ -10,6 +10,7 @@ import 'package:sovereign_ledger/data/repositories/budget_repository.dart';
 import 'package:sovereign_ledger/providers/budget_provider.dart';
 import 'package:sovereign_ledger/providers/insights_provider.dart';
 import 'package:sovereign_ledger/providers/security_provider.dart';
+import 'package:sovereign_ledger/providers/settings_provider.dart';
 
 Future<void> main() async {
   await HiveService.init();
@@ -40,6 +41,9 @@ class SovereignLedgerApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => SecurityProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => SettingsProvider()..loadSettings(),
         ),
       ],
       child: MaterialApp(

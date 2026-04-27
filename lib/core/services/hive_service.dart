@@ -65,5 +65,6 @@ class HiveService {
     await Hive.openBox<TransactionModel>(HiveBoxes.transactions);
     await Hive.openBox<BudgetModel>(HiveBoxes.budgets);
     await Hive.openBox<RecurringRuleModel>(HiveBoxes.recurringRules);
+    await Hive.openBox(HiveBoxes.settings);
   }
 }

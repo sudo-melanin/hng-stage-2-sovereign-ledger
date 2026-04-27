@@ -1,13 +1,17 @@
 import 'package:intl/intl.dart';
+import 'package:sovereign_ledger/core/constants/app_currencies.dart';
 
 class CurrencyFormatter {
-  static final NumberFormat _nairaFormatter = NumberFormat.currency(
-    locale: 'en_NG',
-    symbol: '₦',
-    decimalDigits: 2,
-  );
+  static String format(
+    double amount, {
+    AppCurrency currency = AppCurrencies.naira,
+  }) {
+    final formatter = NumberFormat.currency(
+      locale: currency.locale,
+      symbol: currency.symbol,
+      decimalDigits: 2,
+    );
 
-  static String format(double amount) {
-    return _nairaFormatter.format(amount);
+    return formatter.format(amount);
   }
 }

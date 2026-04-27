@@ -7,13 +7,15 @@ import 'package:sovereign_ledger/core/utils/security_guard.dart';
 import 'package:sovereign_ledger/data/models/transaction_model.dart';
 import 'package:sovereign_ledger/providers/security_provider.dart';
 import 'package:sovereign_ledger/providers/transaction_provider.dart';
+import 'package:sovereign_ledger/providers/settings_provider.dart';
+import 'package:sovereign_ledger/core/constants/app_currencies.dart';
 
 class OverviewScreen extends StatelessWidget {
   const OverviewScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final isUnlocked = context.select<SecurityProvider, bool>(
+     final isUnlocked = context.select<SecurityProvider, bool>(
       (provider) => provider.isUnlocked,
     );
 
@@ -82,6 +84,10 @@ class _BalanceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currency = context.select<SettingsProvider, AppCurrency>(
+      (provider) => provider.currency,
+    );
+
     final balance = context.select<TransactionProvider, double>(
       (provider) => provider.balance,
     );
@@ -123,7 +129,7 @@ class _BalanceCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            isUnlocked ? CurrencyFormatter.format(balance) : '••••••••',
+            isUnlocked ? CurrencyFormatter.format(balance, currency: currency) : '••••••••',
             style: TextStyle(
               color: isUnlocked && isNegative
                   ? const Color(0xFFFFD1D1)
@@ -225,6 +231,9 @@ class _SummaryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currency = context.select<SettingsProvider, AppCurrency>(
+      (provider) => provider.currency,
+    );
     final totalIncome = context.select<TransactionProvider, double>(
       (provider) => provider.totalIncome,
     );
@@ -242,7 +251,7 @@ class _SummaryRow extends StatelessWidget {
         Expanded(
           child: _SummaryCard(
             title: 'Income',
-            value: isUnlocked ? CurrencyFormatter.format(totalIncome) : '••••',
+            value: isUnlocked ? CurrencyFormatter.format(totalIncome, currency: currency) : '••••',
             icon: Icons.arrow_downward_rounded,
             color: AppColors.income,
           ),
@@ -251,7 +260,7 @@ class _SummaryRow extends StatelessWidget {
         Expanded(
           child: _SummaryCard(
             title: 'Expense',
-            value: isUnlocked ? CurrencyFormatter.format(totalExpense) : '••••',
+            value: isUnlocked ? CurrencyFormatter.format(totalExpense, currency: currency) : '••••',
             icon: Icons.arrow_upward_rounded,
             color: AppColors.expense,
           ),
@@ -260,7 +269,7 @@ class _SummaryRow extends StatelessWidget {
         Expanded(
           child: _SummaryCard(
             title: 'Net',
-            value: isUnlocked ? CurrencyFormatter.format(balance) : '••••',
+            value: isUnlocked ? CurrencyFormatter.format(balance, currency: currency) : '••••',
             icon: Icons.account_balance_wallet_outlined,
             color: isUnlocked && balance < 0 ? AppColors.expense : AppColors.primary,
           ),
@@ -483,6 +492,10 @@ class _TransactionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currency = context.select<SettingsProvider, AppCurrency>(
+      (provider) => provider.currency,
+    );
+
     final isIncome = transaction.type == TransactionType.income;
     final amountColor = isIncome ? AppColors.income : AppColors.expense;
     final sign = isIncome ? '+' : '-';
@@ -545,7 +558,7 @@ class _TransactionTile extends StatelessWidget {
           ),
           const SizedBox(width: 10),
           Text(
-            '$sign${CurrencyFormatter.format(transaction.amount)}',
+            '$sign${CurrencyFormatter.format(transaction.amount, currency: currency)}',
             style: TextStyle(
               color: amountColor,
               fontWeight: FontWeight.w900,
