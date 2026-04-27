@@ -2,37 +2,37 @@
 
 ## 1. Project Overview
 
-Sovereign Ledger is a local-first Flutter expense tracker designed to help users manage personal finances by tracking transactions, setting budgets, managing recurring entries, and visualizing financial data through charts.
+Sovereign Ledger is a local-first Flutter-based finance tracking application designed to help users manage personal finances through structured transaction tracking, budgeting, recurring entries, and visual financial insights.
 
-The application emphasizes structured data modeling, efficient state management, local persistence, and secure access to sensitive financial information using facial liveness verification.
+The application emphasizes clean architecture, efficient state management, offline persistence, and controlled access to sensitive financial data using session-based facial liveness verification.
 
 ---
 
 ## 2. Product Goals
 
-The app should allow users to:
+The application enables users to:
 
-- Record income and expense transactions
+- Record and manage income and expense transactions
 - Categorize financial activities
-- Monitor category-based budgets
-- Manage recurring transactions
-- View financial summaries and analytics
+- Define and monitor budgets
+- Automate recurring transactions
+- Visualize financial data through charts
 - Persist all data locally on-device
-- Restrict access to sensitive views using liveness verification
+- Restrict access to sensitive financial views
 
 ---
 
 ## 3. Success Criteria
 
-The app is considered complete if:
+The application is considered complete when:
 
-- Users can add transactions and see real-time updates
-- Budgets reflect accurate spending progress
+- Transactions can be created and reflected immediately
+- Budgets accurately track spending progress
 - Recurring transactions generate correctly without duplication
-- Charts reflect actual financial data
+- Insights reflect actual stored data
 - Data persists after app restart
-- Sensitive screens require successful liveness verification
-- UI aligns closely with provided Figma designs
+- Sensitive views are protected by liveness verification
+- UI aligns closely with the provided Figma design
 
 ---
 
@@ -40,7 +40,8 @@ The app is considered complete if:
 
 - Platform: Android
 - Framework: Flutter
-- Data Storage: Local only (no backend)
+- Data Storage: Local (Hive)
+- Backend: Not required
 
 ---
 
@@ -48,16 +49,20 @@ The app is considered complete if:
 
 ### 5.1 Overview / Dashboard
 
-Displays a financial summary including:
+Displays financial summary including:
 
 - Total balance
 - Total income
 - Total expenses
-- Spending preview
 - Recent transactions
-- Quick access to add transactions
+- Quick actions for adding transactions
 
-> 🔒 Protected by liveness verification
+Behavior:
+
+- Values are dynamically calculated from stored transactions
+- Negative balance is supported and visually indicated
+
+🔒 Protected via session-based liveness verification
 
 ---
 
@@ -65,18 +70,18 @@ Displays a financial summary including:
 
 Users can:
 
-- Add income or expense
-- Enter amount
+- Add income or expense transactions
+- Input amount (validated numeric input)
 - Select category
-- Choose date
-- Add notes
+- Choose transaction date
+- Add optional notes
 - Enable recurring transactions
 
 System behavior:
 
 - Transactions are stored locally
 - Balance updates immediately
-- Data reflects across budgets and analytics
+- Data propagates to budgets and insights
 
 ---
 
@@ -84,15 +89,21 @@ System behavior:
 
 Users can:
 
-- Create category-based budgets
-- Define amount limits
-- Set time periods (weekly/monthly/custom)
-- Track spending against budget
+- Create budgets per category
+- Set spending limits
+- Choose period:
+  - Weekly
+  - Monthly
+  - Custom date range
 
 System behavior:
 
-- Budget usage is calculated from related expense transactions
-- Visual indicators show progress and over-limit states
+- Only expense transactions count toward budgets
+- Spending progress is calculated dynamically
+- Visual feedback shows:
+  - Safe range
+  - Near limit
+  - Over budget
 
 ---
 
@@ -100,16 +111,18 @@ System behavior:
 
 Users can:
 
-- Create recurring income or expenses
-- Choose frequency (daily, weekly, monthly)
-- Enable/disable rules
+- Enable recurring transactions
+- Select frequency:
+  - Weekly
+  - Monthly
 
 System behavior:
 
-- App checks for due transactions on launch
-- Generates transactions when due
-- Updates next execution date
-- Prevents duplicate generation
+- Recurring rules are stored separately
+- App checks for due transactions on load
+- Transactions are generated when due
+- Next due date is automatically updated
+- Duplicate generation is prevented
 
 ---
 
@@ -117,17 +130,24 @@ System behavior:
 
 Includes:
 
-- Category-based spending distribution
-- Time-based spending trends
-- Summary insight cards (e.g., monthly burn, top category)
+- Category-based spending distribution (pie chart)
+- Summary metrics:
+  - Total income
+  - Total expenses
+  - Savings ratio
 
-> 🔒 Protected by liveness verification
+System behavior:
+
+- Data is derived from stored transactions
+- Chart includes color mapping and category legend
+
+🔒 Protected via session-based liveness verification
 
 ---
 
 ### 5.6 Local Persistence
 
-All data must persist locally:
+All data is stored locally using Hive:
 
 - Transactions
 - Categories
@@ -135,7 +155,10 @@ All data must persist locally:
 - Recurring rules
 - App settings
 
-Data must remain after app restart.
+Behavior:
+
+- Data persists across app restarts
+- No network dependency
 
 ---
 
@@ -143,18 +166,29 @@ Data must remain after app restart.
 
 Purpose:
 
-Restrict access to sensitive financial data.
+Protect access to sensitive financial information.
 
 Protected areas:
 
 - Overview / Dashboard
 - Insights / Analytics
+- Data export
 
 Flow:
 
-- Trigger verification before access
-- Allow access on success
-- Deny and allow retry on failure
+1. User attempts to access protected content
+2. Liveness verification is triggered
+3. On success:
+   - Session is unlocked
+   - Access granted for current session
+4. On failure:
+   - Access denied
+   - Retry allowed
+
+Behavior:
+
+- Verification is required once per session
+- Session resets on app restart
 
 ---
 
@@ -162,10 +196,9 @@ Flow:
 
 Includes:
 
-- Security preferences/status
-- Currency formatting option
-- Export option (CSV)
-- App information
+- Currency selection
+- CSV export functionality
+- Security information
 
 ---
 
@@ -173,31 +206,46 @@ Includes:
 
 ### 6.1 CSV Export
 
-Users can export transaction data as a CSV file.
+Users can export transaction data as CSV.
+
+Behavior:
+
+- Export triggers liveness verification if session is locked
+- File is generated locally
+- File is shared using system share sheet
 
 ---
 
 ### 6.2 Currency Formatting
 
-Support clean display of currency values using proper formatting.
+Supports multiple currencies:
+
+- NGN (₦)
+- USD ($)
+- GBP (£)
+- EUR (€)
+
+Behavior:
+
+- Selected currency applies across entire app
+- Uses locale-aware formatting
 
 ---
 
 ## 7. Out of Scope
 
-- Backend or cloud sync
-- User authentication
+- Backend services or cloud sync
+- User authentication accounts
 - Bank integrations
 - Push notifications
 - Multi-user support
-- Advanced analytics beyond basic charts
-- OCR or receipt scanning
+- Advanced forecasting analytics
+- Receipt scanning or OCR
 
 ---
 
 ## 8. Screens
 
-- Splash / Entry Screen
 - Overview Screen (Protected)
 - Add Transaction Screen
 - Budgets Screen
@@ -211,27 +259,33 @@ Support clean display of currency values using proper formatting.
 ## 9. User Flows
 
 ### Add Transaction
-1. Open add screen
+1. Open add transaction screen
 2. Enter details
 3. Save
-4. Data updates across app
+4. Data updates instantly
+
+---
 
 ### Create Budget
-1. Open budgets
+1. Navigate to budgets
 2. Add budget
 3. Save
-4. Track progress
+4. Monitor spending progress
+
+---
 
 ### Recurring Transaction
-1. Enable recurring
-2. Choose frequency
+1. Enable recurring option
+2. Select frequency
 3. Save
-4. System generates entries when due
+4. System generates transactions when due
 
-### Access Protected Screen
-1. Navigate to screen
-2. Trigger liveness check
-3. Grant or deny access
+---
+
+### Access Protected Content
+1. Navigate to protected section
+2. Trigger liveness verification
+3. Access granted or denied
 
 ---
 
@@ -248,7 +302,6 @@ Support clean display of currency values using proper formatting.
 - isRecurring
 - recurringRuleId
 - createdAt
-- updatedAt
 
 ---
 
@@ -268,7 +321,6 @@ Support clean display of currency values using proper formatting.
 - periodType
 - startDate
 - endDate
-- createdAt
 
 ---
 
@@ -278,9 +330,7 @@ Support clean display of currency values using proper formatting.
 - amount
 - type
 - categoryId
-- frequency
-- startDate
-- endDate
+- frequency (weekly/monthly)
 - nextDueDate
 - isActive
 
@@ -288,68 +338,64 @@ Support clean display of currency values using proper formatting.
 
 ### AppSettings
 - currencyCode
-- currencySymbol
-- securityEnabled
-- lastLivenessVerifiedAt
 
 ---
 
 ## 11. Business Rules
 
 - Balance = total income − total expenses
-- Budgets track only expense transactions
-- Transactions must fall within budget period to count
+- Only expenses affect budgets
+- Budget calculations respect date range
 - Recurring transactions must not duplicate
-- Protected screens require liveness verification
-- Data must persist after restart
-- Updates reflect immediately across all modules
+- Sensitive views require verification
+- Data persists locally
+- Updates reflect immediately
 
 ---
 
 ## 12. Edge Case Handling
 
+- Prevent invalid or empty inputs
 - Prevent zero-value transactions
-- Prevent incomplete inputs
-- Handle empty analytics state
-- Handle liveness failure gracefully
-- Prevent duplicate recurring entries
+- Handle empty states (no data)
+- Handle liveness verification failure
+- Ensure recurring transactions do not duplicate
 
 ---
 
 ## 13. Non-Functional Requirements
 
 - Responsive UI
-- Clean layout
 - Smooth navigation
-- Offline-first
-- Stable performance
-- Consistent design implementation
+- Offline-first functionality
+- Efficient state updates
+- Clean and consistent design
 
 ---
 
 ## 14. Acceptance Criteria
 
 ### Transactions
-- Can create and persist
-- Updates reflect instantly
+- Can be created and persist
+- Updates reflect immediately
 
 ### Budgets
-- Progress updates correctly
-- Over-limit detection works
+- Track spending correctly
+- Show over-limit states
 
 ### Recurring
 - Generates correctly
-- No duplicates
+- No duplication
 
 ### Insights
-- Charts reflect real data
+- Charts reflect stored data
 
 ### Security
-- Protected routes require verification
+- Protected screens require verification
 
 ### Storage
 - Data persists after restart
 
 ### Bonus
-- CSV export works
-- Currency formatting is correct
+- CSV export works correctly
+- Currency formatting updates globally

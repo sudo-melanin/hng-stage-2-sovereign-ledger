@@ -63,7 +63,7 @@ class UploadTransactionTab extends StatelessWidget {
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Upload flow is reserved for future upgrade.'),
+                    content: Text('COMING SOON.'),
                   ),
                 );
               },

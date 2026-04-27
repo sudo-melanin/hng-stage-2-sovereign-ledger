@@ -7,8 +7,8 @@ class CaptureTransactionTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const _CaptureLikePlaceholder(
-      title: 'Capture something',
-      subtitle: 'Figure this one out to!!!',
+      title: 'COMING SOON',
+      subtitle: 'To capture transactions!',
       buttonText: 'Save Up!',
     );
   }
@@ -85,7 +85,7 @@ class _CaptureLikePlaceholder extends StatelessWidget {
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Capture flow is reserved for future upgrade.'),
+                    content: Text('COMING SOON.'),
                   ),
                 );
               },
