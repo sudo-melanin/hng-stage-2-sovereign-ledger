@@ -4,14 +4,11 @@ import 'package:sovereign_ledger/core/constants/app_currencies.dart';
 class CurrencyFormatter {
   static String format(
     double amount, {
-    AppCurrency currency = AppCurrencies.naira,
+    required AppCurrency currency,
   }) {
-    final formatter = NumberFormat.currency(
-      locale: currency.locale,
-      symbol: currency.symbol,
-      decimalDigits: 2,
-    );
+    final formatter = NumberFormat('#,##0.00', 'en_US');
+    final formattedNumber = formatter.format(amount);
 
-    return formatter.format(amount);
+    return '${currency.symbol}$formattedNumber';
   }
 }
